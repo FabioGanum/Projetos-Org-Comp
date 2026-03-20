@@ -221,4 +221,5 @@ sair:
 
 	#FALTA:
 #formatacao
+#tratamento de entradas erradas
 #tratar lista vazia
