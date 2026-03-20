@@ -40,43 +40,22 @@ menu:
 	#COMPARACOES:
 
 	li t1, 1	#carrega 1 no t1, que sera comparado
-	beq t0, t1, chama_addin	#compara to e t1. Se iguais, vai para chama_add
+	beq t0, t1, adicionar_vagao_inicio	#compara to e t1. Se iguais, vai para adicionar_vagao_inicio
 
 	li t1, 2	#carrega 2 no t1, que sera comparado
-	beq t0, t1, chama_addfim	#compara to e t1. Se iguais, vai para chama_add
+	beq t0, t1, adicionar_vagao_fim	#compara to e t1. Se iguais, vai para adicionar_vagao_fim
 	
 	li t1, 3	#carrega 3 no t1, que sera comparado
-	beq t0, t1, chama_remId	#compara to e t1. Se iguais, vai para chama_add
+	beq t0, t1, remover_id	#compara to e t1. Se iguais, vai para remover_id
 	
 	li t1, 4	#carrega 4 no t1, que sera comparado
-	beq t0, t1, chama_listar	#compara to e t1. Se iguais, vai para chama_add
+	beq t0, t1, listar_vagao	#compara to e t1. Se iguais, vai para listar_vagao
 	
 	li t1, 5	#carrega 5 no t1, que sera comparado
-	beq t0, t1, chama_buscaVag	#compara to e t1. Se iguais, vai para chama_add
+	beq t0, t1, buscar_vagao	#compara to e t1. Se iguais, vai para buscar_vagao
 	
 	li t1, 6	#carrega 6 no t1, que sera comparado
-	beq t0, t1, sair	#compara to e t1. Se iguais, vai para chama_add
-
-	#TRAMPOLINS (mesma logica do primeiro comentario para todas as labels)
-chama_addin: 
-	jal adicionar_vagao_inicio	#pula para adicionar vagao e deixa o retorno em ra
-	j menu			#pula para o menu
-
-chama_addfim:
-	jal adicionar_vagao_fim
-	j menu
-	
-chama_remId:
-	jal remover_id
-	j menu
-	
-chama_listar:
-	jal listar_vagao
-	j menu
-	
-chama_buscaVag:
-	jal buscar_vagao
-	j menu
+	beq t0, t1, sair	#compara to e t1. Se iguais, vai para sair
 
 	#FUBNCOES
 adicionar_vagao_inicio:
@@ -107,7 +86,7 @@ adicionar_vagao_inicio:
 	ecall
 	sw a0, 0(t0)		#escreve o tipo do vagao
 	
-	ret	#retorna da funcao
+	j menu	#retorna da funcao
 	
 adicionar_vagao_fim:
 	li a7, 9	#criando o novo vagao
@@ -137,7 +116,7 @@ volta:	li a7, 4		#pergunta o novo id
 	ecall
 	sw a0, 0(t0)		#escreve o tipo do vagao
 	
-	ret	#retorno
+	j menu	#retorno
 ins_cabeca:
 	sw t0, 0(t3)
 	j volta
@@ -159,7 +138,7 @@ loop2:	lw t1, 4(t2)	#t1 aponta para o segundo vagao, ja que a locomotiva nao pod
 	beq t3, t0, excluir
 	mv t2, t1
 	j loop2
-volta2: ret	#retorno
+volta2: j menu	#retorno
 excluir: 
 	lw t4, 4(t1)	#t4 tem o vagao depois de t1
 	mv t4, t2	#escreve o endereco do proximo vagao no anterior
@@ -186,7 +165,7 @@ print:	li a7, 4	#inicio do print
 	beq t2, t0, fim_do_trem		#verifica se há proximo vagao
 	mv t1, t2			#t2 -> t1, e reinicia o processo
 	j print
-fim_do_trem:	ret
+fim_do_trem:	j menu
 
 buscar_vagao:
 	li a7, 4	#imprime mensagem
@@ -212,7 +191,7 @@ nao_achou: li a7, 4		#printa a resposta
 	la a0, nao_existe
 	ecall
 	j fim_procura
-fim_procura:	ret		#fim da funcao
+fim_procura:	j menu		#fim da funcao
 
 sair:
 	li a7, 10	#codigo de fim do programa
@@ -221,5 +200,5 @@ sair:
 
 	#FALTA:
 #formatacao
-#tratamento de entradas erradas
+#tratamento de entrada errada
 #tratar lista vazia
