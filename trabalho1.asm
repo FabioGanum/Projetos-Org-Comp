@@ -1,14 +1,19 @@
+#Feito por: Fabio Ganum Filho - 15450803
+
 .data
 texto_menu: .asciz "1 – Adicionar vagão no início \n2 – Adicionar vagão no final \n3 – Remover vagão por ID \n4 – Listar trem \n5 – Buscar vagão \n6 – Sair\n"
 pergunta_id: .asciz "Digite o ID do novo vagão:\n"
 pergunta_tipo: .asciz "Digite o tipo do novo vagão:\n"
 pergunta_id_excl: .asciz "Digite o ID do vagao a ser excluido:\n"
-lista_1: .asciz "O vagao de ID: "
+lista_1: .asciz "Vagao de ID: "
 lista_2: .asciz ", do tipo: "
+lista_loco: .asciz "O vagão de ID 0, do tipo 0 (locomotiva)\n"
 quebra: .asciz "\n"
 existe: .asciz "Esse vagao existe!\n"
 nao_existe: .asciz "Esse vagao nao existe :( \n"
 busca: .asciz "Digite o ID do vagão a ser buscado:\n"
+erro: .asciz "Digite um número dentre as opçãoes:\n"
+remocao_feita: .asciz "Remoção concuida com êxito.\n"
 .align 2
 cabeca: .word 0	#inicializa a cabeca da lista ocmo 0 (vazia)
 .text
@@ -28,13 +33,27 @@ main:
 	la t1, cabeca	#endereco de cabeca em t1
 	sw t0, 0(t1)	#guarda o endereco do primeiro no nos 4 ultimos bytes de cabeca
 
-menu: 
+menu:
+	li t0, 6
+loop_menu: 
 	li a7, 4	#carrega a instrucao 4 (printar string) no a7
 	la a0, texto_menu	#carrega o endereco do menu em a0
 	ecall		#verifica o que executar em a7. procura o endereco do objeto da execucao em a0
 	
 	li a7, 5	#le inteiro do teclado
 	ecall
+	
+	ble a0, zero, entrada_errada
+	bgt a0, t0, entrada_errada
+	j continua
+	
+entrada_errada:
+	li a7, 4
+	la a0, erro
+	ecall
+	j loop_menu
+	
+continua:
 	mv t0, a0	#coloca a0 no t0 (ou seja, a opcao agora esta em t0)
 	
 	#COMPARACOES:
@@ -58,6 +77,7 @@ menu:
 	beq t0, t1, sair	#compara to e t1. Se iguais, vai para sair
 
 	#FUBNCOES
+	
 adicionar_vagao_inicio:
 	li a7, 9	#crianddo o novo vagao
 	li a0, 12
@@ -134,6 +154,7 @@ remover_id:
 	la t1, cabeca
 	lw t2, 0(t1)	#t2 aponta para locomotiva
 loop2:	lw t1, 4(t2)	#t1 aponta para o segundo vagao, ja que a locomotiva nao pode ser apagada
+	beq t1, zero, nao_achou		#utilizando o trecho da função de busca
 	lw t3, 8(t1)	#t3 tem o ID de t1
 	beq t3, t0, excluir
 	mv t2, t1
@@ -142,13 +163,22 @@ volta2: j menu	#retorno
 excluir: 
 	lw t4, 4(t1)	#t4 tem o vagao depois de t1
 	mv t4, t2	#escreve o endereco do proximo vagao no anterior
+	li a7, 4
+	la a0, remocao_feita
+	ecall
 	j volta2
 	
-listar_vagao:		#FALTA A FORMATACAO
+listar_vagao:
 	la t0, cabeca
 	lw t0, 0(t0)	#achando a locomotiva
 	lw t1, 4(t0)	#t1 é sempre o vagao atual
 	li t0, 0	#t0 é o controle de 0
+	
+	li a7, 4	#locomotiva sempre existe
+	la a0, lista_loco
+	ecall
+	beq t1, zero, fim_do_trem	#caso trem vazio
+		
 print:	li a7, 4	#inicio do print
 	la a0, lista_1
 	ecall
@@ -160,12 +190,16 @@ print:	li a7, 4	#inicio do print
 	ecall
 	li a7, 1
 	lw a0, 0(t1)
+	ecall
+	li a7, 4
+	la a0, quebra
 	ecall				#fim do print
 	lw t2, 4(t1)			#l2 tem o endereco do proximo vagao
 	beq t2, t0, fim_do_trem		#verifica se há proximo vagao
 	mv t1, t2			#t2 -> t1, e reinicia o processo
 	j print
-fim_do_trem:	j menu
+fim_do_trem:	
+	j menu
 
 buscar_vagao:
 	li a7, 4	#imprime mensagem
@@ -178,20 +212,24 @@ buscar_vagao:
 	la t1, cabeca
 	lw t2, 0(t1)	#como esse t2 é a locomotiva, com id fixo 0, pula para proxima
 	lw t2, 4(t2)
-verifica_dnv:	beq t2, t4, nao_achou	#verifica se há proximo vagao
+verifica_dnv:	
+	beq t2, t4, nao_achou	#verifica se há proximo vagao
 	lw t3, 8(t2)
 	beq t3, t0, achou	#verifica se os IDs são iguais
 	lw t2, 4(t2)
 	j verifica_dnv
-achou: 	li a7, 4		#printa a resposta
+achou: 	
+	li a7, 4		#printa a resposta
 	la a0, existe
 	ecall
 	j fim_procura
-nao_achou: li a7, 4		#printa a resposta
+nao_achou: 
+	li a7, 4		#printa a resposta
 	la a0, nao_existe
 	ecall
 	j fim_procura
-fim_procura:	j menu		#fim da funcao
+fim_procura:	
+	j menu		#fim da funcao
 
 sair:
 	li a7, 10	#codigo de fim do programa
@@ -199,6 +237,3 @@ sair:
 
 
 	#FALTA:
-#formatacao
-#tratamento de entrada errada
-#tratar lista vazia
